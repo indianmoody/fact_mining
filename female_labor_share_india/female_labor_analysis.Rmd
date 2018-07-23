@@ -1,0 +1,72 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+# packages
+library('RPostgreSQL')
+```
+
+```{r}
+# Function to connect to db.
+connect_db = function() {
+  # Connect to data base
+  pg = dbDriver("PostgreSQL")
+  con = dbConnect(pg, user="postgres", password="password", host="localhost", port=5432, dbname="edstatsdb")
+  return (con)
+}
+```
+
+```{r}
+con = connect_db()
+```
+
+
+
+Get data for female labor force % in India.
+```{r}
+labor_share_female_df = dbGetQuery(con, "SELECT * FROM eddetails WHERE indicator_code = 'SL.TLF.TOTL.FE.ZS' AND country_name = 'India';")
+```
+
+```{r}
+labor_share_female_df
+```
+
+```{r}
+labor_share_female_df = labor_share_female_df[,24:ncol(labor_share_female_df)]
+labor_share_female_df
+```
+
+```{r}
+labor_share_female_df = t(labor_share_female_df)
+rownames(labor_share_female_df) = sapply(rownames(labor_share_female_df), function(x) as.numeric(gsub("x", "", x)))
+labor_share_female_df
+```
+
+```{r}
+plot(rownames(labor_share_female_df), labor_share_female_df[,1], type='o', xlab = 'Year', ylab = 'Female Share in %')
+title(main = "Female Labor Share in %")
+```
+
+
+
+
+
+
+% of female population aged 15-19 with secondary education (complete or incomplete)
+```{r}
+# indicator_code = BAR.SEC.ICMP.1519.FE.ZS
+years = seq(1970,2010,5)
+female_edu = c(5.7, 13.32, 23, 28.92, 35.45, 40.41, 52.12, 64.97, 75.62)
+plot(years, female_edu, type='o', xlab = 'Year', ylab = 'Female 15-19 %')
+title(main = "Female (15-19 yrs)% with Secondary Education (complete or incomplete)")
+```
+
+
+
+```{r}
+# close connection to database
+  dbDisconnect(con)
+```
+
